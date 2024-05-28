@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'terminal-table'
 
 # Use your own Flink home path instead
@@ -10,7 +11,7 @@ DATABASE_NAME = 'fallen'
 TABLES = %w[angel gabriel girl].freeze
 
 YAML_JOB_FILE = 'conf/pipeline.yaml'
-SIMULATE_SIZE = 10_240
+SIMULATE_SIZE = 128
 MAX_RETRY = 170
 
 puts 'Restarting cluster...'
@@ -26,7 +27,13 @@ File.open('_phase_1.sql', 'w') do |f|
 end
 
 File.open('_phase_2.sql', 'w') do |f|
-  SIMULATE_SIZE.upto(SIMULATE_SIZE * 2).each do |num|
+  (SIMULATE_SIZE + 1).upto(SIMULATE_SIZE * 2).each do |num|
+    f.write("INSERT INTO #{TABLES.sample(1)[0]} VALUES (#{num}, 'num_#{num}');\n")
+  end
+end
+
+File.open('_phase_3.sql', 'w') do |f|
+  (SIMULATE_SIZE * 2 + 1).upto(SIMULATE_SIZE * 3).each do |num|
     f.write("INSERT INTO #{TABLES.sample(1)[0]} VALUES (#{num}, 'num_#{num}');\n")
   end
 end
@@ -72,9 +79,12 @@ def test_migration_chore(from_version, to_version)
   puts '   Checking Phase 1 sync progress...'
   wait_times = 0
   loop do
-    count = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM terminus;").split("\n").last&.strip
+    count = TABLES.map do |table_name|
+      cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM #{table_name};").split("\n").last&.strip&.to_i
+      cnt.nil? ? 0 : cnt
+    end.sum
     puts "   Sync progress: #{count} / #{SIMULATE_SIZE}"
-    break if count == SIMULATE_SIZE.to_s
+    break if count == SIMULATE_SIZE
 
     sleep 0.1
     wait_times += 1
@@ -99,12 +109,18 @@ def test_migration_chore(from_version, to_version)
   new_job_id = submit_job_output.split("\n")[1].split.last
   puts "   Upgraded Job ID: #{new_job_id}"
 
-  puts '   Checking Phase 2 sync progress...'
+  # Wait for job to start
+  sleep 5
+  exec_sql_source("source #{Dir.pwd}/_phase_3.sql")
+  puts '   Checking Phase 2 & 3 sync progress...'
   wait_times = 0
   loop do
-    count = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM terminus;").split("\n").last&.strip
-    puts "   Sync progress: #{count} / #{SIMULATE_SIZE * 2}"
-    break if count == (SIMULATE_SIZE * 2).to_s
+    count = TABLES.map do |table_name|
+      cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM #{table_name};").split("\n").last&.strip&.to_i
+      cnt.nil? ? 0 : cnt
+    end.sum
+    puts "   Sync progress: #{count} / #{SIMULATE_SIZE * 3}"
+    break if count == SIMULATE_SIZE * 3
 
     sleep 0.1
     wait_times += 1
@@ -120,9 +136,13 @@ def test_migration(from_version, to_version)
   puts "➡️ [MIGRATION] Testing migration from #{from_version} to #{to_version}..."
   puts "   with Flink #{FLINK_HOME}..."
   begin
-    test_migration_chore from_version, to_version
-    puts "✅ [MIGRATION] Successfully migrated from #{from_version} to #{to_version}!"
-    true
+    result = test_migration_chore from_version, to_version
+    if result
+      puts "✅ [MIGRATION] Successfully migrated from #{from_version} to #{to_version}!"
+    else
+      puts "❌ [MIGRATION] Failed to migrate from #{from_version} to #{to_version}..."
+    end
+    result
   rescue NoMethodError
     puts "❌ [MIGRATION] Failed to migrate from #{from_version} to #{to_version}..."
     false
@@ -148,13 +168,13 @@ printable_result << [''] + version_list
 version_list.each_with_index do |old_version, old_index|
   table_line = [old_version]
   version_list.each_with_index do |new_version, new_index|
-    if old_index > new_index
-      table_line << ""
-    else
-      table_line << version_result[old_version + new_version]
-    end
+    table_line << if old_index > new_index
+                    ''
+                  else
+                    version_result[old_version + new_version]
+                  end
   end
   printable_result << table_line
 end
 
-puts Terminal::Table.new :rows => printable_result, :title => 'Migration Test Result'
+puts Terminal::Table.new rows: printable_result, title: 'Migration Test Result'

@@ -55,7 +55,7 @@ def place_snapshot_connector(version)
   `mkdir -p cdc-versions/#{version}/lib`
   `cp -r ../flink-cdc/flink-cdc-dist/src/main/flink-cdc-bin/* cdc-versions/#{version}/`
 
-  puts 'Compiling CDC project...'
+  puts 'Compiling snapshot version...'
   `cd ../flink-cdc && mvn install -DskipTests`
 
   FILES.each do |lib|

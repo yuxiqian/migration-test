@@ -1,5 +1,6 @@
 source:
   type: mysql
+  name: MySQL Source
   hostname: localhost
   port: 3306
   username: root
@@ -20,14 +21,6 @@ sink:
 pipeline:
   name: Sync MySQL Database to StarRocks
   parallelism: 4
+  schema.operator.uid: "~SCHEMA_OPERATOR~"
 
-route:
-  - source-table: fallen.\.*
-    sink-table: fallen.terminus
-    description: "route all sharded tables to terminus"
-#
-#transform:
-#  - source-table: reicigo.\.*
-#    projection: ID, UPPER(ID) AS UPID, LOLO, UPPER(LOLO) AS UPLOLO
-#    filter: CHAR_LENGTH(ID) > 5
-#    description: project fields from source table
+# Mysterious operator ID: e073839807a5383bc7abd99b8b48d9e4
