@@ -1,0 +1,6 @@
+*.sql
+savepoints/**
+cdc-versions/**
+cache/**
+.idea/**
+Gemfile.lock

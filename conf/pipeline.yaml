@@ -1,0 +1,33 @@
+source:
+  type: mysql
+  hostname: localhost
+  port: 3306
+  username: root
+  password: ""
+  tables: fallen.\.*
+  server-id: 5400-5500
+  server-time-zone: UTC
+
+sink:
+  type: starrocks
+  name: StarRocks Sink
+  jdbc-url: jdbc:mysql://127.0.0.1:9030
+  load-url: 127.0.0.1:8080
+  username: root
+  password: ""
+  table.create.properties.replication_num: 1
+
+pipeline:
+  name: Sync MySQL Database to StarRocks
+  parallelism: 4
+
+route:
+  - source-table: fallen.\.*
+    sink-table: fallen.terminus
+    description: "route all sharded tables to terminus"
+#
+#transform:
+#  - source-table: reicigo.\.*
+#    projection: ID, UPPER(ID) AS UPID, LOLO, UPPER(LOLO) AS UPLOLO
+#    filter: CHAR_LENGTH(ID) > 5
+#    description: project fields from source table

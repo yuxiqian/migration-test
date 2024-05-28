@@ -1,0 +1,16 @@
+FLINK_HOME: String
+SOURCE_PORT: Integer
+SINK_HTTP_PORT: Integer
+SINK_SQL_PORT: Integer
+DATABASE_NAME: String
+TABLES: Array[String]
+YAML_JOB_FILE: String
+SIMULATE_SIZE: Integer
+MAX_RETRY: Integer
+
+class Object
+  def exec_sql_source: (String) -> String
+  def exec_sql_sink: (String) -> String
+  def test_migration_chore: (String, String) -> bool
+  def test_migration: (String, String) -> nil
+end
