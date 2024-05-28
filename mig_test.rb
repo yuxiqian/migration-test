@@ -106,7 +106,6 @@ def test_migration_chore(from_version, to_version)
     puts "   Sync progress: #{count} / #{SIMULATE_SIZE * 2}"
     break if count == (SIMULATE_SIZE * 2).to_s
 
-    puts "\n"
     sleep 0.1
     wait_times += 1
     if wait_times > MAX_RETRY
