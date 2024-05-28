@@ -109,7 +109,7 @@ def test_migration_chore(from_version, to_version)
     sleep 0.1
     wait_times += 1
     if wait_times > MAX_RETRY
-      '❌ Failed to retrieve enough data records in sink.' if wait_times > MAX_RETRY
+      puts '❌ Failed to retrieve enough data records in sink.' if wait_times > MAX_RETRY
       return false
     end
   end
