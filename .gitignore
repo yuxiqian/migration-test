@@ -4,3 +4,4 @@ cdc-versions/**
 cache/**
 .idea/**
 Gemfile.lock
+/logs/

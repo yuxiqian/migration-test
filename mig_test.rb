@@ -14,10 +14,6 @@ YAML_JOB_FILE = 'conf/pipeline.yaml'
 SIMULATE_SIZE = 128
 MAX_RETRY = 170
 
-puts 'Restarting cluster...'
-`#{FLINK_HOME}/bin/stop-cluster.sh`
-`#{FLINK_HOME}/bin/start-cluster.sh`
-
 puts 'Preparing test data...'
 
 File.open('_phase_1.sql', 'w') do |f|
@@ -149,11 +145,14 @@ def test_migration(from_version, to_version)
   end
 end
 
-version_list = %w[3.0.0 3.0.1 3.1.0 3.2-SNAPSHOT]
+version_list = %w[3.0.0 3.0.1 3.1.0 3.1-SNAPSHOT 3.2-SNAPSHOT]
 no_savepoint_versions = %w[3.0.0 3.0.1]
 version_result = Hash.new('❓')
 
 version_list.each_with_index do |old_version, old_index|
+  puts 'Restarting cluster...'
+  `#{FLINK_HOME}/bin/stop-cluster.sh`
+  `#{FLINK_HOME}/bin/start-cluster.sh`
   version_list.each_with_index do |new_version, new_index|
     next if old_index > new_index
     next if no_savepoint_versions.include? new_version

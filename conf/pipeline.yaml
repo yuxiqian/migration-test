@@ -20,7 +20,7 @@ sink:
 
 pipeline:
   name: Sync MySQL Database to StarRocks
-  parallelism: 4
+  parallelism: 1
   schema.operator.uid: "~SCHEMA_OPERATOR~"
 
 # Mysterious operator ID: e073839807a5383bc7abd99b8b48d9e4

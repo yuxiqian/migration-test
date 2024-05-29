@@ -51,8 +51,10 @@ FILES = %w[
   pipeline-connector-paimon
   pipeline-connector-starrocks
 ].freeze
-def place_snapshot_connector(version)
+def place_snapshot_connector(version, branch)
+  puts "Trying to create #{version} on branch #{branch}"
   `mkdir -p cdc-versions/#{version}/lib`
+  `cd ../flink-cdc && git checkout #{branch}`
   `cp -r ../flink-cdc/flink-cdc-dist/src/main/flink-cdc-bin/* cdc-versions/#{version}/`
 
   puts 'Compiling snapshot version...'
@@ -77,5 +79,8 @@ def download_libs
 end
 
 download_libs
-place_snapshot_connector '3.2-SNAPSHOT'
+place_snapshot_connector '3.1-SNAPSHOT', 'FLINK-35464-BP-3.1'
+place_snapshot_connector '3.2-SNAPSHOT', 'FLINK-35464'
+# place_snapshot_connector '3.1-SNAPSHOT', 'release-3.1'
+# place_snapshot_connector '3.2-SNAPSHOT', 'master'
 puts 'Done'
