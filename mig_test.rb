@@ -44,13 +44,13 @@ end
 
 def count_sink_records
   if TEST_ROUTE
+    cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM terminus;").split("\n").last&.strip&.to_i
+    cnt.nil? ? 0 : cnt
+  else
     TABLES.map do |table_name|
       cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM #{table_name};").split("\n").last&.strip&.to_i
       cnt.nil? ? 0 : cnt
     end.sum
-  else
-    cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM terminus;").split("\n").last&.strip&.to_i
-    cnt.nil? ? 0 : cnt
   end
 end
 
