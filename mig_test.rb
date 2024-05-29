@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'terminal-table'
-
 # Use your own Flink home path instead
 FLINK_HOME = '~/Documents/Flink/flink-1.18.1'
 SOURCE_PORT = 3306
@@ -10,9 +8,11 @@ SINK_SQL_PORT = 9030
 DATABASE_NAME = 'fallen'
 TABLES = %w[angel gabriel girl].freeze
 
-YAML_JOB_FILE = 'conf/pipeline.yaml'
+TEST_ROUTE = true
+YAML_JOB_FILE = TEST_ROUTE ? 'conf/pipeline-route.yaml' : 'conf/pipeline.yaml'
 SIMULATE_SIZE = 128
 MAX_RETRY = 170
+
 
 puts 'Preparing test data...'
 
@@ -40,6 +40,18 @@ end
 
 def exec_sql_sink(sql)
   `mysql -h 127.0.0.1 -P#{SINK_SQL_PORT} -uroot --skip-password -e "#{sql}" 2>/dev/null`
+end
+
+def count_sink_records
+  if TEST_ROUTE
+    TABLES.map do |table_name|
+      cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM #{table_name};").split("\n").last&.strip&.to_i
+      cnt.nil? ? 0 : cnt
+    end.sum
+  else
+    cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM terminus;").split("\n").last&.strip&.to_i
+    cnt.nil? ? 0 : cnt
+  end
 end
 
 def test_migration_chore(from_version, to_version)
@@ -75,10 +87,7 @@ def test_migration_chore(from_version, to_version)
   puts '   Checking Phase 1 sync progress...'
   wait_times = 0
   loop do
-    count = TABLES.map do |table_name|
-      cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM #{table_name};").split("\n").last&.strip&.to_i
-      cnt.nil? ? 0 : cnt
-    end.sum
+    count = count_sink_records
     puts "   Sync progress: #{count} / #{SIMULATE_SIZE}"
     break if count == SIMULATE_SIZE
 
@@ -111,10 +120,7 @@ def test_migration_chore(from_version, to_version)
   puts '   Checking Phase 2 & 3 sync progress...'
   wait_times = 0
   loop do
-    count = TABLES.map do |table_name|
-      cnt = exec_sql_sink("USE #{DATABASE_NAME}; SELECT COUNT(*) FROM #{table_name};").split("\n").last&.strip&.to_i
-      cnt.nil? ? 0 : cnt
-    end.sum
+    count = count_sink_records
     puts "   Sync progress: #{count} / #{SIMULATE_SIZE * 3}"
     break if count == SIMULATE_SIZE * 3
 
@@ -176,4 +182,10 @@ version_list.each_with_index do |old_version, old_index|
   printable_result << table_line
 end
 
-puts Terminal::Table.new rows: printable_result, title: 'Migration Test Result'
+
+begin
+  require 'terminal-table'
+  puts Terminal::Table.new rows: printable_result, title: 'Migration Test Result'
+rescue LoadError
+  puts 'Test summary: ', printable_result
+end
