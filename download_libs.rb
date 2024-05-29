@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-VERSIONS = {
+RELEASED_VERSIONS = {
   '3.0.0': {
     tar: 'https://github.com/ververica/flink-cdc-connectors/releases/download/release-3.0.0/flink-cdc-3.0.0-bin.tar.gz',
     connectors: %w[
@@ -31,6 +31,11 @@ VERSIONS = {
   }
 }.freeze
 
+SNAPSHOT_VERSIONS = {
+  '3.1-SNAPSHOT': 'release-3.1',
+  '3.2-SNAPSHOT': 'master'
+}.freeze
+
 def download_or_get(link)
   `mkdir -p cache`
   file_name = "cache/#{File.basename(link)}"
@@ -51,7 +56,20 @@ FILES = %w[
   pipeline-connector-paimon
   pipeline-connector-starrocks
 ].freeze
-def place_snapshot_connector(version, branch)
+def download_released
+  `rm -rf cdc-versions`
+  RELEASED_VERSIONS.each do |version, links|
+    `mkdir -p cdc-versions/#{version}`
+    file_name = download_or_get(links[:tar])
+    `tar --strip-components=1 -xzvf #{file_name} -C cdc-versions/#{version}`
+    links[:connectors].each do |link|
+      jar_file_name = download_or_get(link)
+      `cp #{jar_file_name} cdc-versions/#{version}/lib/`
+    end
+  end
+end
+
+def compile_snapshot(version, branch)
   puts "Trying to create #{version} on branch #{branch}"
   `mkdir -p cdc-versions/#{version}/lib`
   `cd ../flink-cdc && git checkout #{branch}`
@@ -65,22 +83,8 @@ def place_snapshot_connector(version, branch)
   end
 end
 
-def download_libs
-  `rm -rf cdc-versions`
-  VERSIONS.each do |version, links|
-    `mkdir -p cdc-versions/#{version}`
-    file_name = download_or_get(links[:tar])
-    `tar --strip-components=1 -xzvf #{file_name} -C cdc-versions/#{version}`
-    links[:connectors].each do |link|
-      jar_file_name = download_or_get(link)
-      `cp #{jar_file_name} cdc-versions/#{version}/lib/`
-    end
-  end
-end
+download_released
 
-download_libs
-place_snapshot_connector '3.1-SNAPSHOT', 'FLINK-35464-BP-3.1'
-place_snapshot_connector '3.2-SNAPSHOT', 'FLINK-35464'
-# place_snapshot_connector '3.1-SNAPSHOT', 'release-3.1'
-# place_snapshot_connector '3.2-SNAPSHOT', 'master'
+SNAPSHOT_VERSIONS.each { |version, branch| compile_snapshot version.to_s, branch }
+
 puts 'Done'

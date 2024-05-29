@@ -1,9 +1,10 @@
 VERSIONS: Hash[Symbol, { tar: String, connectors: Array[String] }]
+SNAPSHOT_VERSIONS: Hash[Symbol, String]
 M2_REPO: String
 FILES: Array[String]
 
 class Object
-  def place_snapshot_connector(String) -> nil
+  def place_snapshot_connector: (String) -> nil
   def download_or_get: (String) -> String
   def download_libs: () -> nil
 end
