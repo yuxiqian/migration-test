@@ -20,7 +20,7 @@ RELEASED_VERSIONS = {
     ]
   },
   '3.1.0': {
-    tar: 'https://www.apache.org/dyn/closer.lua/flink/flink-cdc-3.1.0/flink-cdc-3.1.0-bin.tar.gz',
+    tar: 'https://dlcdn.apache.org/flink/flink-cdc-3.1.0/flink-cdc-3.1.0-bin.tar.gz',
     connectors: %w[
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-mysql/3.1.0/flink-cdc-pipeline-connector-mysql-3.1.0.jar
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-doris/3.1.0/flink-cdc-pipeline-connector-doris-3.1.0.jar
@@ -34,6 +34,11 @@ RELEASED_VERSIONS = {
 SNAPSHOT_VERSIONS = {
   '3.1-SNAPSHOT': 'release-3.1',
   '3.2-SNAPSHOT': 'master'
+}.freeze
+
+SNAPSHOT_VERSIONS = {
+  '3.1-SNAPSHOT': 'FLINK-35464-BP-3.1',
+  '3.2-SNAPSHOT': 'FLINK-35464'
 }.freeze
 
 def download_or_get(link)
