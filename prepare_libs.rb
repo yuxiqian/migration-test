@@ -27,6 +27,7 @@ RELEASED_VERSIONS = {
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-starrocks/3.1.0/flink-cdc-pipeline-connector-starrocks-3.1.0.jar
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-kafka/3.1.0/flink-cdc-pipeline-connector-kafka-3.1.0.jar
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-paimon/3.1.0/flink-cdc-pipeline-connector-paimon-3.1.0.jar
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-values/3.1.0/flink-cdc-pipeline-connector-values-3.1.0.jar
     ]
   }
 }.freeze
@@ -40,6 +41,10 @@ SNAPSHOT_VERSIONS = {
   '3.1-SNAPSHOT': 'FLINK-35464-BP-3.1',
   '3.2-SNAPSHOT': 'FLINK-35464'
 }.freeze
+
+# SNAPSHOT_VERSIONS = {
+#   '3.2-SNAPSHOT': 'FLINK-35463'
+# }.freeze
 
 def download_or_get(link)
   `mkdir -p cache`
@@ -60,6 +65,7 @@ FILES = %w[
   pipeline-connector-doris
   pipeline-connector-paimon
   pipeline-connector-starrocks
+  pipeline-connector-values
 ].freeze
 def download_released
   `rm -rf cdc-versions`

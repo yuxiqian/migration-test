@@ -1,0 +1,19 @@
+source:
+  type: mysql
+  name: MySQL Source
+  hostname: localhost
+  port: 3306
+  username: root
+  password: ""
+  tables: fallen.\.*
+  server-id: 5400-5500
+  server-time-zone: UTC
+
+sink:
+  type: values
+  name: Values Sink
+
+pipeline:
+  name: Sync MySQL Database to StarRocks
+  parallelism: 1
+  schema.operator.uid: "~SCHEMA_OPERATOR~"
