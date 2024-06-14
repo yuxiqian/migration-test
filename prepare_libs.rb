@@ -29,6 +29,17 @@ RELEASED_VERSIONS = {
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-paimon/3.1.0/flink-cdc-pipeline-connector-paimon-3.1.0.jar
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-values/3.1.0/flink-cdc-pipeline-connector-values-3.1.0.jar
     ]
+  },
+  '3.1.1': {
+    tar: 'https://dlcdn.apache.org/flink/flink-cdc-3.1.1/flink-cdc-3.1.1-bin.tar.gz',
+    connectors: %w[
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-mysql/3.1.1/flink-cdc-pipeline-connector-mysql-3.1.1.jar
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-doris/3.1.1/flink-cdc-pipeline-connector-doris-3.1.1.jar
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-starrocks/3.1.1/flink-cdc-pipeline-connector-starrocks-3.1.1.jar
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-kafka/3.1.1/flink-cdc-pipeline-connector-kafka-3.1.1.jar
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-paimon/3.1.1/flink-cdc-pipeline-connector-paimon-3.1.1.jar
+      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-values/3.1.1/flink-cdc-pipeline-connector-values-3.1.1.jar
+    ]
   }
 }.freeze
 
@@ -36,15 +47,6 @@ SNAPSHOT_VERSIONS = {
   '3.1-SNAPSHOT': 'release-3.1',
   '3.2-SNAPSHOT': 'master'
 }.freeze
-
-SNAPSHOT_VERSIONS = {
-  '3.1-SNAPSHOT': 'FLINK-35464-BP-3.1',
-  '3.2-SNAPSHOT': 'FLINK-35464'
-}.freeze
-
-# SNAPSHOT_VERSIONS = {
-#   '3.2-SNAPSHOT': 'FLINK-35463'
-# }.freeze
 
 def download_or_get(link)
   `mkdir -p cache`
@@ -87,10 +89,14 @@ def compile_snapshot(version, branch)
   `cp -r ../flink-cdc/flink-cdc-dist/src/main/flink-cdc-bin/* cdc-versions/#{version}/`
 
   puts 'Compiling snapshot version...'
-  `cd ../flink-cdc && mvn install -DskipTests`
+  `cd ../flink-cdc && mvn clean package -DskipTests`
 
   FILES.each do |lib|
-    `cp #{M2_REPO}/flink-cdc-#{lib}/#{version}/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
+    if lib == 'dist'
+      `cp ../flink-cdc/flink-cdc-#{lib}/target/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
+    else
+      `cp ../flink-cdc/flink-cdc-connect/flink-cdc-pipeline-connectors/flink-cdc-#{lib}/target/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
+    end
   end
 end
 

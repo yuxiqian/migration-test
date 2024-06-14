@@ -2,7 +2,7 @@
 require 'securerandom'
 
 # Use your own Flink home path instead
-FLINK_HOME = '~/Documents/Flink/flink-1.18.1'
+FLINK_HOME = '~/Documents/Flink/flink-1.19.0'
 SOURCE_PORT = 3306
 DATABASE_NAME = 'fallen'
 

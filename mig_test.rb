@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 # Use your own Flink home path instead
-FLINK_HOME = '~/Documents/Flink/flink-1.18.1'
+FLINK_HOME = '~/Documents/Flink/flink-1.19.0'
 SOURCE_PORT = 3306
 SINK_HTTP_PORT = 8080
 SINK_SQL_PORT = 9030
 DATABASE_NAME = 'fallen'
-TABLES = %w[angel gabriel girl].freeze
+TABLES = %w[gabriel girl angel].freeze
 SIMULATE_SIZE = 128
 MAX_RETRY = 170
 
@@ -149,14 +149,16 @@ def test_migration(from_version, to_version)
   end
 end
 
-version_list = %w[3.0.0 3.0.1 3.1.0 3.1-SNAPSHOT 3.2-SNAPSHOT]
+version_list = %w[3.0.0 3.0.1 3.1.0 3.1.1 3.1-SNAPSHOT 3.2-SNAPSHOT]
 no_savepoint_versions = %w[3.0.0 3.0.1]
 version_result = Hash.new('❓')
 
 version_list.each_with_index do |old_version, old_index|
   puts 'Restarting cluster...'
   `#{FLINK_HOME}/bin/stop-cluster.sh`
+  puts 'Stopped cluster.'
   `#{FLINK_HOME}/bin/start-cluster.sh`
+  puts 'Started cluster.'
   version_list.each_with_index do |new_version, new_index|
     next if old_index > new_index
     next if no_savepoint_versions.include? new_version
