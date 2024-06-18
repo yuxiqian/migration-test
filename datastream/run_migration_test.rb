@@ -25,7 +25,7 @@ def test_migration_chore(from_version, to_version)
   `rm -rf savepoints`
 
   old_job_id = `#{FLINK_HOME}/bin/flink run -p 1 -c DataStreamJob --detached datastream-#{from_version}/target/datastream-job-#{from_version}-jar-with-dependencies.jar`.split.last
-  raise "Failed to submit Flink job" unless old_job_id.length == 32
+  raise StandardError.new("Failed to submit Flink job") unless old_job_id.length == 32
   puts "Submitted job at #{from_version} as #{old_job_id}"
 
   random_string_1 = SecureRandom.hex(8)
@@ -36,7 +36,7 @@ def test_migration_chore(from_version, to_version)
   puts `#{FLINK_HOME}/bin/flink stop --savepointPath #{Dir.pwd}/savepoints #{old_job_id}`
   savepoint_file = `ls savepoints`.split("\n").last
   new_job_id = `#{FLINK_HOME}/bin/flink run --fromSavepoint #{Dir.pwd}/savepoints/#{savepoint_file} -p 1 -c DataStreamJob --detached datastream-#{to_version}/target/datastream-job-#{to_version}-jar-with-dependencies.jar`.split.last
-  raise "Failed to submit Flink job" unless new_job_id.length == 32
+  raise StandardError.new("Failed to submit Flink job") unless new_job_id.length == 32
 
   puts "Submitted job at #{to_version} as #{new_job_id}"
   random_string_2 = SecureRandom.hex(8)
@@ -58,7 +58,7 @@ def test_migration(from_version, to_version)
       puts "❌ [MIGRATION] Failed to migrate from #{from_version} to #{to_version}..."
     end
     result
-  rescue NoMethodError
+  rescue StandardError
     puts "❌ [MIGRATION] Failed to migrate from #{from_version} to #{to_version}..."
     false
   end

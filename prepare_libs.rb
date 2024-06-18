@@ -92,7 +92,7 @@ def compile_snapshot(version, branch)
   `cp -r #{CDC_SOURCE_HOME}/flink-cdc-dist/src/main/flink-cdc-bin/* cdc-versions/#{version}/`
 
   puts 'Compiling snapshot version...'
-  `cd #{CDC_SOURCE_HOME} && mvn clean package -DskipTests`
+  `cd #{CDC_SOURCE_HOME} && mvn clean install -DskipTests`
 
   FILES.each do |lib|
     if lib == 'dist'

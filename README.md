@@ -1,5 +1,8 @@
 # Flink CDC MigrationTestUtils
 
+[![DataStream Migration Test](https://github.com/yuxiqian/migration-test/actions/workflows/datastream_mig_test.yml/badge.svg)](https://github.com/yuxiqian/migration-test/actions/workflows/datastream_mig_test.yml)
+[![Pipeline Migration Test](https://github.com/yuxiqian/migration-test/actions/workflows/pipeline_mig_test.yml/badge.svg)](https://github.com/yuxiqian/migration-test/actions/workflows/pipeline_mig_test.yml)
+
 ## Pipeline Jobs
 ### Preparation
 

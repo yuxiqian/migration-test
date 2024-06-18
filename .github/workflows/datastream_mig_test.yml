@@ -1,0 +1,56 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will download a prebuilt Ruby version, install dependencies and run tests with Rake
+# For more information see: https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
+
+name: DataStream Migration Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['3.0']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - uses: actions/setup-java@v4.2.1
+      with:
+        distribution: zulu
+        java-version: 8
+    - name: Install dependencies
+      run: gem install terminal-table
+    - name: Clone Flink CDC repository
+      run: git clone https://github.com/apache/flink-cdc
+    - name: Prepare CDC versions
+      run: CDC_SOURCE_HOME=./flink-cdc ruby prepare_libs.rb
+    - name: Prepare Flink distro
+      run: wget https://dlcdn.apache.org/flink/flink-1.18.1/flink-1.18.1-bin-scala_2.12.tgz && tar -xzvf flink-1.18.1-bin-scala_2.12.tgz
+    - name: Patch Flink configs
+      run: FLINK_HOME=./flink-1.18.1/ ruby misc/patch_flink_conf.rb
+    - name: Compile Dummy DataStream Jobs
+      run: cd datastream && ruby compile_jobs.rb
+    - name: Start containers
+      run: cd conf && docker-compose up -d
+    - name: Run migration tests
+      run: cd datastream && FLINK_HOME=../flink-1.18.1/ ruby run_migration_test.rb
+    - name: Stop containers
+      if: always()
+      run: cd conf && docker-compose down
