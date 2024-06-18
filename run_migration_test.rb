@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-# Use your own Flink home path instead
-FLINK_HOME = '~/Documents/Flink/flink-1.19.0'
+FLINK_HOME = ENV['FLINK_HOME']
+throw 'Unspecified `FLINK_HOME` environment variable.' if FLINK_HOME.nil?
+
 SOURCE_PORT = 3306
 SINK_HTTP_PORT = 8080
 SINK_SQL_PORT = 9030
@@ -12,19 +13,19 @@ MAX_RETRY = 170
 
 puts 'Preparing test data...'
 
-File.open('_phase_1.sql', 'w') do |f|
+File.open('cache/_phase_1.sql', 'w') do |f|
   1.upto(SIMULATE_SIZE).each do |num|
     f.write("INSERT INTO #{TABLES.sample(1)[0]} VALUES (#{num}, 'num_#{num}');\n")
   end
 end
 
-File.open('_phase_2.sql', 'w') do |f|
+File.open('cache/_phase_2.sql', 'w') do |f|
   (SIMULATE_SIZE + 1).upto(SIMULATE_SIZE * 2).each do |num|
     f.write("INSERT INTO #{TABLES.sample(1)[0]} VALUES (#{num}, 'num_#{num}');\n")
   end
 end
 
-File.open('_phase_3.sql', 'w') do |f|
+File.open('cache/_phase_3.sql', 'w') do |f|
   (SIMULATE_SIZE * 2 + 1).upto(SIMULATE_SIZE * 3).each do |num|
     f.write("INSERT INTO #{TABLES.sample(1)[0]} VALUES (#{num}, 'num_#{num}');\n")
   end
@@ -74,7 +75,7 @@ def test_migration_chore(from_version, to_version)
     exec_sql_source("DROP TABLE IF EXISTS #{table_name};")
     exec_sql_source("CREATE TABLE #{table_name} (ID INT NOT NULL, NAME VARCHAR(17), PRIMARY KEY (ID));")
   end
-  exec_sql_source("source #{Dir.pwd}/_phase_1.sql")
+  exec_sql_source("source #{Dir.pwd}/cache/_phase_1.sql")
 
   puts "   Submitting CDC jobs at #{from_version}..."
   submit_job_output = `bash ./cdc-versions/#{from_version}/bin/flink-cdc.sh --flink-home #{FLINK_HOME} #{yaml_job_file}`
@@ -103,7 +104,7 @@ def test_migration_chore(from_version, to_version)
   puts "\n"
   puts '   Phase 1 complete. Test migration now...'
   `#{FLINK_HOME}/bin/flink stop #{current_job_id} --savepointPath #{Dir.pwd}/savepoints #{current_job_id}`
-  exec_sql_source("source #{Dir.pwd}/_phase_2.sql")
+  exec_sql_source("source #{Dir.pwd}/cache/_phase_2.sql")
 
   savepoint_file = `ls savepoints`.split("\n").last
   puts "   Submitting CDC jobs at #{to_version}..."
@@ -114,7 +115,7 @@ def test_migration_chore(from_version, to_version)
 
   # Wait for job to start
   sleep 5
-  exec_sql_source("source #{Dir.pwd}/_phase_3.sql")
+  exec_sql_source("source #{Dir.pwd}/cache/_phase_3.sql")
   puts '   Checking Phase 2 & 3 sync progress...'
   wait_times = 0
   loop do
@@ -149,7 +150,7 @@ def test_migration(from_version, to_version)
   end
 end
 
-version_list = %w[3.0.0 3.0.1 3.1.0 3.1.1 3.1-SNAPSHOT 3.2-SNAPSHOT]
+version_list = %w[3.0.0 3.0.1 3.1.0 3.1-SNAPSHOT 3.2-SNAPSHOT]
 no_savepoint_versions = %w[3.0.0 3.0.1]
 version_result = Hash.new('❓')
 

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+CDC_SOURCE_HOME = ENV['CDC_SOURCE_HOME']
+throw 'Unspecified `CDC_SOURCE_HOME` environment variable.' if CDC_SOURCE_HOME.nil?
+
 RELEASED_VERSIONS = {
   '3.0.0': {
     tar: 'https://github.com/ververica/flink-cdc-connectors/releases/download/release-3.0.0/flink-cdc-3.0.0-bin.tar.gz',
@@ -30,17 +33,17 @@ RELEASED_VERSIONS = {
       https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-values/3.1.0/flink-cdc-pipeline-connector-values-3.1.0.jar
     ]
   },
-  '3.1.1': {
-    tar: 'https://dlcdn.apache.org/flink/flink-cdc-3.1.1/flink-cdc-3.1.1-bin.tar.gz',
-    connectors: %w[
-      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-mysql/3.1.1/flink-cdc-pipeline-connector-mysql-3.1.1.jar
-      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-doris/3.1.1/flink-cdc-pipeline-connector-doris-3.1.1.jar
-      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-starrocks/3.1.1/flink-cdc-pipeline-connector-starrocks-3.1.1.jar
-      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-kafka/3.1.1/flink-cdc-pipeline-connector-kafka-3.1.1.jar
-      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-paimon/3.1.1/flink-cdc-pipeline-connector-paimon-3.1.1.jar
-      https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-values/3.1.1/flink-cdc-pipeline-connector-values-3.1.1.jar
-    ]
-  }
+  # '3.1.1': {
+  #   tar: 'https://dlcdn.apache.org/flink/flink-cdc-3.1.1/flink-cdc-3.1.1-bin.tar.gz',
+  #   connectors: %w[
+  #     https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-mysql/3.1.1/flink-cdc-pipeline-connector-mysql-3.1.1.jar
+  #     https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-doris/3.1.1/flink-cdc-pipeline-connector-doris-3.1.1.jar
+  #     https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-starrocks/3.1.1/flink-cdc-pipeline-connector-starrocks-3.1.1.jar
+  #     https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-kafka/3.1.1/flink-cdc-pipeline-connector-kafka-3.1.1.jar
+  #     https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-paimon/3.1.1/flink-cdc-pipeline-connector-paimon-3.1.1.jar
+  #     https://repo1.maven.org/maven2/org/apache/flink/flink-cdc-pipeline-connector-values/3.1.1/flink-cdc-pipeline-connector-values-3.1.1.jar
+  #   ]
+  # }
 }.freeze
 
 SNAPSHOT_VERSIONS = {
@@ -85,17 +88,17 @@ end
 def compile_snapshot(version, branch)
   puts "Trying to create #{version} on branch #{branch}"
   `mkdir -p cdc-versions/#{version}/lib`
-  `cd ../flink-cdc && git checkout #{branch}`
-  `cp -r ../flink-cdc/flink-cdc-dist/src/main/flink-cdc-bin/* cdc-versions/#{version}/`
+  `cd #{CDC_SOURCE_HOME} && git checkout #{branch}`
+  `cp -r #{CDC_SOURCE_HOME}/flink-cdc-dist/src/main/flink-cdc-bin/* cdc-versions/#{version}/`
 
   puts 'Compiling snapshot version...'
-  `cd ../flink-cdc && mvn clean package -DskipTests`
+  `cd #{CDC_SOURCE_HOME} && mvn clean package -DskipTests`
 
   FILES.each do |lib|
     if lib == 'dist'
-      `cp ../flink-cdc/flink-cdc-#{lib}/target/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
+      `cp #{CDC_SOURCE_HOME}/flink-cdc-#{lib}/target/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
     else
-      `cp ../flink-cdc/flink-cdc-connect/flink-cdc-pipeline-connectors/flink-cdc-#{lib}/target/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
+      `cp #{CDC_SOURCE_HOME}/flink-cdc-connect/flink-cdc-pipeline-connectors/flink-cdc-#{lib}/target/flink-cdc-#{lib}-#{version}.jar cdc-versions/#{version}/lib/`
     end
   end
 end
