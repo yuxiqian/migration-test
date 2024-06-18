@@ -2,7 +2,9 @@
 require 'securerandom'
 
 # Use your own Flink home path instead
-FLINK_HOME = '~/Documents/Flink/flink-1.19.0'
+FLINK_HOME = ENV['FLINK_HOME']
+throw 'Unspecified `FLINK_HOME` environment variable.' if FLINK_HOME.nil?
+
 SOURCE_PORT = 3306
 DATABASE_NAME = 'fallen'
 
