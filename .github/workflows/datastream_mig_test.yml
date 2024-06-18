@@ -17,24 +17,23 @@ permissions:
   contents: read
 
 jobs:
-  test:
-
+  migration_test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['3.0']
+        java-version: ['8', '11']
 
     steps:
     - uses: actions/checkout@v4
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: ${{ matrix.ruby-version }}
+        ruby-version: 3.0
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - uses: actions/setup-java@v4.2.1
       with:
         distribution: zulu
-        java-version: 8
+        java-version: ${{ matrix.java-version }}
     - name: Install dependencies
       run: gem install terminal-table
     - name: Clone Flink CDC repository
