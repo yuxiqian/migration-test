@@ -30,10 +30,11 @@ jobs:
       with:
         ruby-version: 3.0
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-    - uses: actions/setup-java@v4.2.1
+    - uses: actions/setup-java@v4
       with:
-        distribution: zulu
         java-version: ${{ matrix.java-version }}
+        distribution: temurin
+        cache: maven
     - name: Install dependencies
       run: gem install terminal-table
     - name: Clone Flink CDC repository
