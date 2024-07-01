@@ -7,3 +7,9 @@ services:
       MYSQL_DATABASE: fallen
     ports:
       - 3306:3306
+  
+  starrocks:
+    image: starrocks/allin1-ubuntu:3.2.6
+    ports:
+      - 9030:9030
+      - 8080:8080

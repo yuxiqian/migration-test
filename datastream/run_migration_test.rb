@@ -1,7 +1,7 @@
 # frozen_string_literal: true
+
 require 'securerandom'
 
-# Use your own Flink home path instead
 FLINK_HOME = ENV['FLINK_HOME']
 throw 'Unspecified `FLINK_HOME` environment variable.' if FLINK_HOME.nil?
 
