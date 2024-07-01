@@ -21,6 +21,8 @@ def ensure_mystery_data(mystery)
   throw "Failed to get specific mystery string" unless `cat #{FLINK_HOME}/log/*.out`.include? mystery
 end
 
+puts '   Waiting for source to start up...'
+next until exec_sql_source("SELECT '1';") == "1\n1\n"
 
 def test_migration_chore(from_version, to_version)
   TABLES.each do |table_name|
